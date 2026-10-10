@@ -1,0 +1,22 @@
+# Planora - pinned to versions verified together in the build environment
+# (Python 3.12/3.13). See .build_state/VERIFY.md for the verification log.
+fastapi==0.142.2
+uvicorn[standard]==0.53.0
+asyncpg==0.31.0
+psycopg2-binary==2.9.13
+pglast==8.4
+pydantic==2.13.5
+pydantic-settings==2.15.0
+torch>=2.6,<3
+torch_geometric==2.8.0.post1
+networkx==3.6.1
+langchain-core==1.6.6
+langgraph==1.2.12
+streamlit==1.65.0
+plotly==7.1.0
+pandas==3.0.5
+httpx==0.28.1
+pytest==9.1.1
+pytest-asyncio==1.4.0
+# LLM access (Gemini / OpenAI-compatible) is done over plain HTTPS with httpx,
+# so no vendor SDK is required.

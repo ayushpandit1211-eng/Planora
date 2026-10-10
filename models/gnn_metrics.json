@@ -1,0 +1,159 @@
+{
+  "train_size": 1600,
+  "val_size": 400,
+  "best_val_accuracy": 1.0,
+  "heldout_same_distribution": {
+    "accuracy": 1.0,
+    "n": 400,
+    "confusion": [
+      [
+        100,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        100,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        100,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        100
+      ]
+    ]
+  },
+  "heldout_unseen_template_variants": {
+    "accuracy": 0.835,
+    "n": 400,
+    "confusion": [
+      [
+        100,
+        0,
+        0,
+        0
+      ],
+      [
+        59,
+        36,
+        5,
+        0
+      ],
+      [
+        0,
+        0,
+        100,
+        0
+      ],
+      [
+        2,
+        0,
+        0,
+        98
+      ]
+    ]
+  },
+  "unseen_variants": {
+    "0": [
+      "seq_under_agg"
+    ],
+    "1": [
+      "merge_big"
+    ],
+    "2": [
+      "sort_then_group"
+    ],
+    "3": [
+      "limit_index_order"
+    ]
+  },
+  "class_balance_train": {
+    "3": 400,
+    "2": 400,
+    "0": 400,
+    "1": 400
+  },
+  "epochs": 80,
+  "lr": 0.01,
+  "seed": 1234,
+  "train_seconds": 6.3,
+  "history_tail": [
+    {
+      "epoch": 76,
+      "loss": 0.0014,
+      "val_accuracy": 0.9975
+    },
+    {
+      "epoch": 77,
+      "loss": 0.0012,
+      "val_accuracy": 0.9975
+    },
+    {
+      "epoch": 78,
+      "loss": 0.0012,
+      "val_accuracy": 0.9975
+    },
+    {
+      "epoch": 79,
+      "loss": 0.0013,
+      "val_accuracy": 1.0
+    },
+    {
+      "epoch": 80,
+      "loss": 0.0012,
+      "val_accuracy": 1.0
+    }
+  ],
+  "label_source": "synthetic scenario generator (see app/gnn/training.py)",
+  "real_plan_agreement": {
+    "plans": 5,
+    "agreement_rate": 0.8,
+    "details": [
+      {
+        "scenario": 0,
+        "gnn": "Unindexed Sequential Scan",
+        "gnn_confidence": 0.9994,
+        "rules": "Unindexed Sequential Scan",
+        "agree": true
+      },
+      {
+        "scenario": 1,
+        "gnn": "Unindexed Sequential Scan",
+        "gnn_confidence": 0.8121,
+        "rules": "Unindexed Sequential Scan",
+        "agree": true
+      },
+      {
+        "scenario": 2,
+        "gnn": "High-Cost Nested Loop / Join",
+        "gnn_confidence": 0.9996,
+        "rules": "Unindexed Sequential Scan",
+        "agree": false
+      },
+      {
+        "scenario": 3,
+        "gnn": "Unindexed Sequential Scan",
+        "gnn_confidence": 1.0,
+        "rules": "Unindexed Sequential Scan",
+        "agree": true
+      },
+      {
+        "scenario": 4,
+        "gnn": "Efficient / No Major Bottleneck",
+        "gnn_confidence": 1.0,
+        "rules": "Efficient / No Major Bottleneck",
+        "agree": true
+      }
+    ],
+    "note": "agreement with analytic rules on live demo plans - not ground-truth accuracy"
+  }
+}

@@ -1,0 +1,53 @@
+name: Container deployment checks
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  production-stack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements-deploy.txt
+      - name: Generate disposable CI configuration
+        run: |
+          python - <<'PY'
+          from scripts.configure_production import configuration
+          from pathlib import Path
+          values = configuration('demo.example.com', 'ci@example.com', 'reviewer', 'ephemeral-ci-only-password')
+          # Loopback-only HTTP is used solely for CI; real deployment uses a DNS hostname and TLS.
+          values['APP_DOMAIN'] = 'http://:80'
+          Path('.env.production').write_text(''.join(f"{k}='{v}'\n" for k,v in values.items()))
+          PY
+      - name: Validate and build production images
+        run: |
+          docker compose --env-file .env.production -f compose.production.yml config --quiet
+          docker compose --env-file .env.production -f compose.production.yml build
+      - name: Start and verify the complete stack
+        run: |
+          docker compose --env-file .env.production -f compose.production.yml up -d --wait --wait-timeout 600
+          docker compose --env-file .env.production -f compose.production.yml exec -T gateway caddy validate --config /etc/caddy/Caddyfile
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost/)" = 401
+          test "$(curl -s -u reviewer:incorrect -o /dev/null -w '%{http_code}' http://localhost/)" = 401
+          curl -fsS -u reviewer:ephemeral-ci-only-password http://localhost/_stcore/health
+          docker compose --env-file .env.production -f compose.production.yml exec -T backend python scripts/check_ready.py
+          test -z "$(docker compose --env-file .env.production -f compose.production.yml port db 5432)"
+          test -z "$(docker compose --env-file .env.production -f compose.production.yml port backend 8000)"
+      - name: Exercise backup and restore
+        run: |
+          python scripts/backup_database.py
+          python scripts/verify_backup.py "$(ls backups/*.dump | head -1)"
+      - name: Check database persistence after restart
+        run: |
+          docker compose --env-file .env.production -f compose.production.yml restart db backend dashboard
+          docker compose --env-file .env.production -f compose.production.yml up -d --wait --wait-timeout 300
+          docker compose --env-file .env.production -f compose.production.yml exec -T backend python scripts/check_ready.py
+      - name: Container status
+        if: always()
+        run: docker compose --env-file .env.production -f compose.production.yml ps -a
+      - name: Remove disposable CI services
+        if: always()
+        run: docker compose --env-file .env.production -f compose.production.yml down -v

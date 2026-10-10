@@ -1,0 +1,22 @@
+# Credentials and local runtime must never enter an image build context.
+.env
+.env.*
+!.env.example
+.git
+.venv
+venv
+__pycache__
+**/__pycache__
+.pytest_cache
+*.pyc
+*.log
+*.zip
+runtime
+output
+.build_state
+.frontend_redesign
+benchmark_results
+backups
+*.dump
+
+.operator-venv/

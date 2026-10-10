@@ -1,0 +1,22 @@
+[
+  {
+    "file": "models/gnn_bottleneck.pt",
+    "sha256": "bc2c1d03ce77c5d5f91fe752ecf8a14b46a9c822152b37356f5f6b2024add24e"
+  },
+  {
+    "file": "models/gnn_gatv2.pt",
+    "sha256": "706b8683ec1211fc18e06562f1d49a1c37124579b54959cbc218ebb7425cbb23"
+  },
+  {
+    "file": "models/gnn_metrics.json",
+    "sha256": "b7e642854205bd90ea1cee4b634bf481559caa8e4875de650404faac263bf7c1"
+  },
+  {
+    "file": "models/rl_metrics.json",
+    "sha256": "4913661491c6c1d6fc891aa491ea285836a02bccfaf7649564b0a3f3f5011274"
+  },
+  {
+    "file": "models/rl_policy.json",
+    "sha256": "dfbf841ea98b4a50d01f2c3f07ccf330d0ed167513d45dfdc754878913aceb2c"
+  }
+]

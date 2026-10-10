@@ -1,0 +1,31 @@
+[theme]
+# V4 forest glass (presentation only). Canvas gradient + glass panels live in dashboard/components.py.
+base = "dark"
+primaryColor = "#F1BC70"
+backgroundColor = "#0B2431"
+secondaryBackgroundColor = "#102F40"
+textColor = "#F3F7F9"
+font = "sans serif"
+linkColor = "#F1BC70"
+codeBackgroundColor = "#0A202C"
+borderColor = "#375564"
+dataframeBorderColor = "#375564"
+dataframeHeaderBackgroundColor = "#102F40"
+dataframeHeaderTextColor = "#BAD1DC"
+baseRadius = "10px"
+buttonRadius = "10px"
+redColor = "#F0808F"
+greenColor = "#79D6AE"
+orangeColor = "#F1BC70"
+yellowColor = "#F1CA7C"
+blueColor = "#8BC5DF"
+
+[theme.sidebar]
+backgroundColor = "#102F40"
+secondaryBackgroundColor = "#0A202C"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false

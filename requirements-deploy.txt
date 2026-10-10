@@ -1,0 +1,2 @@
+# Operator tooling only; not needed in application containers.
+bcrypt==5.0.0

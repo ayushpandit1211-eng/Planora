@@ -1,0 +1,70 @@
+name: planora
+
+services:
+  db:
+    build:
+      context: .
+      dockerfile: docker/db/Dockerfile
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-querysentinel}
+      QS_APP_PASSWORD: ${QS_APP_PASSWORD:?set QS_APP_PASSWORD in .env}
+    # pg_stat_statements must be preloaded at server start (Section 6)
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=pg_stat_statements
+      - -c
+      - pg_stat_statements.track=all
+      - -c
+      - pg_stat_statements.max=10000
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  backend:
+    build: .
+    env_file: .env
+    environment:
+      QS_ROLE: backend
+      POSTGRES_HOST: db
+      # local single-user demo: every dashboard tab sees every uploaded dataset.
+      # Set QS_SESSION_MODE=per_session in .env for per-browser-session ownership.
+      QS_SESSION_MODE: ${QS_SESSION_MODE:-single_user}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/api/v1/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  dashboard:
+    build: .
+    env_file: .env
+    environment:
+      QS_ROLE: dashboard
+      POSTGRES_HOST: ""
+      BACKEND_URL: http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    command: ["streamlit", "run", "dashboard/app.py", "--server.address", "0.0.0.0", "--server.port", "8501",
+              "--server.maxUploadSize", "${INGEST_MAX_UPLOAD_MB:-100}"]
+    ports:
+      - "127.0.0.1:8501:8501"
+
+volumes:
+  pgdata:

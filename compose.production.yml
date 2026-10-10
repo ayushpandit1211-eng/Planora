@@ -1,0 +1,119 @@
+name: planora-production
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+
+services:
+  db:
+    build:
+      context: .
+      dockerfile: docker/db/Dockerfile
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: querysentinel
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      QS_APP_PASSWORD: ${QS_APP_PASSWORD:?required}
+    command: [postgres, -c, shared_preload_libraries=pg_stat_statements, -c, pg_stat_statements.track=all]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [database]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -h 127.0.0.1 -U postgres -d querysentinel']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    logging: *logging
+
+  backend:
+    build: .
+    restart: unless-stopped
+    environment:
+      QS_DEPLOYMENT_MODE: production
+      QS_ROLE: backend
+      POSTGRES_HOST: db
+      POSTGRES_PORT: '5432'
+      POSTGRES_DB: querysentinel
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      QS_APP_PASSWORD: ${QS_APP_PASSWORD:?required}
+      PRIVACY_HMAC_KEY: ${PRIVACY_HMAC_KEY:?required}
+      QS_API_KEY: ${QS_API_KEY:?required}
+      QS_SESSION_MODE: per_session
+      SEED_ON_START: 'true'
+      LLM_PROVIDER: none
+      BENCHMARK_ENABLED: 'false'
+    command: [uvicorn, 'app.api:app', --host, 0.0.0.0, --port, '8000', --workers, '1']
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [database, application]
+    security_opt: ['no-new-privileges:true']
+    cap_drop: [ALL]
+    healthcheck:
+      test: [CMD, python, scripts/check_ready.py]
+      interval: 20s
+      timeout: 25s
+      retries: 6
+      start_period: 180s
+    logging: *logging
+
+  dashboard:
+    build: .
+    restart: unless-stopped
+    environment:
+      QS_DEPLOYMENT_MODE: production
+      QS_ROLE: dashboard
+      POSTGRES_HOST: ''
+      BACKEND_URL: http://backend:8000
+      QS_API_KEY: ${QS_API_KEY:?required}
+      STREAMLIT_BROWSER_GATHER_USAGE_STATS: 'false'
+      STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION: 'true'
+      STREAMLIT_SERVER_ENABLE_CORS: 'true'
+    command: [streamlit, run, dashboard/app.py, --server.address, 0.0.0.0, --server.port, '8501', --server.maxUploadSize, '100']
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks: [application, edge]
+    security_opt: ['no-new-privileges:true']
+    cap_drop: [ALL]
+    healthcheck:
+      test: [CMD, curl, -fsS, 'http://127.0.0.1:8501/_stcore/health']
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    logging: *logging
+
+  gateway:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    ports: ['80:80', '443:443']
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?required}
+      ACME_EMAIL: ${ACME_EMAIL:?required}
+      DEMO_USER: ${DEMO_USER:?required}
+      DEMO_PASSWORD_HASH: ${DEMO_PASSWORD_HASH:?required}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [edge]
+    depends_on:
+      dashboard:
+        condition: service_healthy
+    logging: *logging
+
+networks:
+  database:
+    internal: true
+  application:
+    internal: true
+  edge:
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

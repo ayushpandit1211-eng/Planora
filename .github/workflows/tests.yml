@@ -1,0 +1,73 @@
+name: Tests
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install --index-url https://download.pytorch.org/whl/cpu 'torch>=2.6,<3'
+      - run: pip install -r requirements.txt
+      - run: pytest -q --junitxml=test-results.xml
+        env:
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_PORT: '1'
+          LLM_PROVIDER: none
+          QS_SESSION_MODE: per_session
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: offline-results
+          path: test-results.xml
+  integration:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: '5432'
+      POSTGRES_DB: querysentinel
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ci-ephemeral-postgres
+      QS_APP_PASSWORD: ci-ephemeral-app
+      PRIVACY_HMAC_KEY: ci-ephemeral-hmac
+      QS_SESSION_MODE: per_session
+      LLM_PROVIDER: none
+      SANDBOX_PG_HOST: 127.0.0.1
+      SANDBOX_PG_PORT: '5433'
+      SANDBOX_PG_USER: postgres
+      SANDBOX_PG_PASSWORD: ci-ephemeral-sandbox
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install --index-url https://download.pytorch.org/whl/cpu 'torch>=2.6,<3'
+      - run: pip install -r requirements.txt
+      - name: Start disposable databases
+        run: |
+          docker build -t qs-test-db -f docker/db/Dockerfile .
+          docker run -d --name qs-main -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD -e POSTGRES_DB -e QS_APP_PASSWORD qs-test-db -c shared_preload_libraries=pg_stat_statements
+          docker run -d --name qs-sandbox -p 127.0.0.1:5433:5432 -e POSTGRES_PASSWORD=ci-ephemeral-sandbox qs-test-db -c shared_preload_libraries=pg_stat_statements
+          for container in qs-main qs-sandbox; do
+            ready=false
+            for attempt in $(seq 1 60); do
+              if docker exec "$container" pg_isready -h 127.0.0.1 -U postgres; then ready=true; break; fi
+              sleep 2
+            done
+            "$ready"
+          done
+      - run: python scripts/seed_data.py --if-empty
+      - run: pytest -q --junitxml=test-results.xml
+      - name: Require every integration test to run
+        run: |
+          python -c "import xml.etree.ElementTree as E; r=E.parse('test-results.xml'); assert not r.findall('.//skipped'), 'Unexpected skipped tests'"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-results
+          path: test-results.xml

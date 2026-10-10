@@ -1,0 +1,24 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+.venv/
+venv/
+*.egg-info/
+.DS_Store
+benchmark_results/
+models/*.tmp
+
+# Local credentials, reports and operating-system artifacts
+.env.*
+!.env.example
+*.log
+runtime/
+output/
+.coverage
+htmlcov/
+*.zip
+backups/
+*.dump
+
+.operator-venv/

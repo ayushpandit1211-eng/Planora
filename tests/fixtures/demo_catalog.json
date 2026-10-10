@@ -1,0 +1,389 @@
+{
+ "tables": [
+  {
+   "schema_name": "public",
+   "table_name": "order_items",
+   "estimated_rows": 2999917.0,
+   "table_size_bytes": 253624320,
+   "total_size_bytes": 382304256,
+   "n_tup_ins": 3000321,
+   "n_tup_upd": 0,
+   "n_tup_del": 0,
+   "n_tup_hot_upd": 0,
+   "seq_scan": 118,
+   "idx_scan": 0,
+   "last_analyze": "2026-10-03T09:16:43"
+  },
+  {
+   "schema_name": "public",
+   "table_name": "orders",
+   "estimated_rows": 1000000.0,
+   "table_size_bytes": 112590848,
+   "total_size_bytes": 188735488,
+   "n_tup_ins": 1000143,
+   "n_tup_upd": 136,
+   "n_tup_del": 0,
+   "n_tup_hot_upd": 0,
+   "seq_scan": 706,
+   "idx_scan": 3002021,
+   "last_analyze": "2026-10-03T09:16:43"
+  },
+  {
+   "schema_name": "public",
+   "table_name": "tenants",
+   "estimated_rows": 100.0,
+   "table_size_bytes": 8192,
+   "total_size_bytes": 49152,
+   "n_tup_ins": 100,
+   "n_tup_upd": 0,
+   "n_tup_del": 0,
+   "n_tup_hot_upd": 0,
+   "seq_scan": 550149,
+   "idx_scan": 450260,
+   "last_analyze": "2026-10-03T09:16:43"
+  }
+ ],
+ "columns": [
+  {
+   "table_name": "order_items",
+   "column_name": "item_id",
+   "data_type": "uuid",
+   "nullable": false,
+   "n_distinct": -1.0,
+   "null_frac": 0.0,
+   "correlation": 0.00505949929356575,
+   "top_value_freq": null,
+   "attnum": 1
+  },
+  {
+   "table_name": "order_items",
+   "column_name": "order_id",
+   "data_type": "uuid",
+   "nullable": false,
+   "n_distinct": -0.28226473927497864,
+   "null_frac": 0.0,
+   "correlation": 0.003228604793548584,
+   "top_value_freq": null,
+   "attnum": 2
+  },
+  {
+   "table_name": "order_items",
+   "column_name": "product_sku",
+   "data_type": "text",
+   "nullable": false,
+   "n_distinct": 3353.0,
+   "null_frac": 0.0,
+   "correlation": 0.03375660628080368,
+   "top_value_freq": 0.15950000286102295,
+   "attnum": 3
+  },
+  {
+   "table_name": "order_items",
+   "column_name": "quantity",
+   "data_type": "integer",
+   "nullable": false,
+   "n_distinct": 13.0,
+   "null_frac": 0.0,
+   "correlation": 0.37934425473213196,
+   "top_value_freq": 0.5496666431427002,
+   "attnum": 4
+  },
+  {
+   "table_name": "order_items",
+   "column_name": "unit_price",
+   "data_type": "numeric(10,2)",
+   "nullable": false,
+   "n_distinct": 11758.0,
+   "null_frac": 0.0,
+   "correlation": -0.0019141400698572397,
+   "top_value_freq": 0.002033333294093609,
+   "attnum": 5
+  },
+  {
+   "table_name": "orders",
+   "column_name": "order_id",
+   "data_type": "uuid",
+   "nullable": false,
+   "n_distinct": -1.0,
+   "null_frac": 0.0,
+   "correlation": 0.0035182421561330557,
+   "top_value_freq": null,
+   "attnum": 1
+  },
+  {
+   "table_name": "orders",
+   "column_name": "tenant_id",
+   "data_type": "uuid",
+   "nullable": false,
+   "n_distinct": 100.0,
+   "null_frac": 0.0,
+   "correlation": 0.12613536417484283,
+   "top_value_freq": 0.1624000072479248,
+   "attnum": 2
+  },
+  {
+   "table_name": "orders",
+   "column_name": "customer_email",
+   "data_type": "text",
+   "nullable": true,
+   "n_distinct": -0.19707000255584717,
+   "null_frac": 0.1516333371400833,
+   "correlation": -0.001679023145698011,
+   "top_value_freq": null,
+   "attnum": 3
+  },
+  {
+   "table_name": "orders",
+   "column_name": "total_amount",
+   "data_type": "numeric(12,2)",
+   "nullable": false,
+   "n_distinct": 23560.0,
+   "null_frac": 0.0,
+   "correlation": 0.004869974683970213,
+   "top_value_freq": 0.00039999998989515007,
+   "attnum": 4
+  },
+  {
+   "table_name": "orders",
+   "column_name": "status",
+   "data_type": "text",
+   "nullable": false,
+   "n_distinct": 6.0,
+   "null_frac": 0.0,
+   "correlation": 0.35862788558006287,
+   "top_value_freq": 0.5495666861534119,
+   "attnum": 5
+  },
+  {
+   "table_name": "orders",
+   "column_name": "order_date",
+   "data_type": "timestamp without time zone",
+   "nullable": false,
+   "n_distinct": -0.987034022808075,
+   "null_frac": 0.0,
+   "correlation": 0.003322913544252515,
+   "top_value_freq": null,
+   "attnum": 6
+  },
+  {
+   "table_name": "tenants",
+   "column_name": "tenant_id",
+   "data_type": "uuid",
+   "nullable": false,
+   "n_distinct": -1.0,
+   "null_frac": 0.0,
+   "correlation": 0.009780977852642536,
+   "top_value_freq": null,
+   "attnum": 1
+  },
+  {
+   "table_name": "tenants",
+   "column_name": "name",
+   "data_type": "text",
+   "nullable": false,
+   "n_distinct": -1.0,
+   "null_frac": 0.0,
+   "correlation": 1.0,
+   "top_value_freq": null,
+   "attnum": 2
+  },
+  {
+   "table_name": "tenants",
+   "column_name": "tier",
+   "data_type": "text",
+   "nullable": false,
+   "n_distinct": 3.0,
+   "null_frac": 0.0,
+   "correlation": 0.564428448677063,
+   "top_value_freq": 0.6200000047683716,
+   "attnum": 3
+  },
+  {
+   "table_name": "tenants",
+   "column_name": "created_at",
+   "data_type": "timestamp without time zone",
+   "nullable": false,
+   "n_distinct": -0.9100000262260437,
+   "null_frac": 0.0,
+   "correlation": 0.05874587595462799,
+   "top_value_freq": 0.029999999329447746,
+   "attnum": 4
+  }
+ ],
+ "indexes": [
+  {
+   "index_name": "order_items_pkey",
+   "table_name": "order_items",
+   "is_unique": true,
+   "is_primary": true,
+   "is_partial": false,
+   "am": "btree",
+   "size_bytes": 128581632,
+   "idx_scan": 0,
+   "key_columns": [
+    "item_id"
+   ],
+   "include_columns": [],
+   "has_expression": false
+  },
+  {
+   "index_name": "idx_orders_order_date",
+   "table_name": "orders",
+   "is_unique": false,
+   "is_primary": false,
+   "is_partial": false,
+   "am": "btree",
+   "size_bytes": 30244864,
+   "idx_scan": 209,
+   "key_columns": [
+    "order_date"
+   ],
+   "include_columns": [],
+   "has_expression": false
+  },
+  {
+   "index_name": "idx_orders_status",
+   "table_name": "orders",
+   "is_unique": false,
+   "is_primary": false,
+   "is_partial": false,
+   "am": "btree",
+   "size_bytes": 6529024,
+   "idx_scan": 41,
+   "key_columns": [
+    "status"
+   ],
+   "include_columns": [],
+   "has_expression": false
+  },
+  {
+   "index_name": "orders_pkey",
+   "table_name": "orders",
+   "is_unique": true,
+   "is_primary": true,
+   "is_partial": false,
+   "am": "btree",
+   "size_bytes": 39305216,
+   "idx_scan": 3001771,
+   "key_columns": [
+    "order_id"
+   ],
+   "include_columns": [],
+   "has_expression": false
+  },
+  {
+   "index_name": "idx_tenants_tier",
+   "table_name": "tenants",
+   "is_unique": false,
+   "is_primary": false,
+   "is_partial": false,
+   "am": "btree",
+   "size_bytes": 16384,
+   "idx_scan": 0,
+   "key_columns": [
+    "tier"
+   ],
+   "include_columns": [],
+   "has_expression": false
+  },
+  {
+   "index_name": "tenants_pkey",
+   "table_name": "tenants",
+   "is_unique": true,
+   "is_primary": true,
+   "is_partial": false,
+   "am": "btree",
+   "size_bytes": 16384,
+   "idx_scan": 450260,
+   "key_columns": [
+    "tenant_id"
+   ],
+   "include_columns": [],
+   "has_expression": false
+  }
+ ],
+ "foreign_keys": [
+  {
+   "table_name": "orders",
+   "ref_table": "tenants",
+   "columns": [
+    "tenant_id"
+   ],
+   "ref_columns": [
+    "tenant_id"
+   ]
+  },
+  {
+   "table_name": "order_items",
+   "ref_table": "orders",
+   "columns": [
+    "order_id"
+   ],
+   "ref_columns": [
+    "order_id"
+   ]
+  }
+ ],
+ "primary_keys": {
+  "tenants": [
+   "tenant_id"
+  ],
+  "orders": [
+   "order_id"
+  ],
+  "order_items": [
+   "item_id"
+  ]
+ },
+ "write_statements": [
+  {
+   "query": "INSERT INTO optimizer_meta.audit_events (request_id, event_type, stage, severity, details) VALUES ($1, $2, $3, $4, $5::jsonb)",
+   "calls": 194,
+   "rows": 194,
+   "mean_exec_time": 0.0783151958762887,
+   "total_exec_time": 15.193147999999997
+  },
+  {
+   "query": "INSERT INTO order_items (item_id, order_id, product_sku, quantity, unit_price) SELECT $1, order_id, $2, $3, $4 FROM orders WHERE tenant_id = $5 LIMIT $6",
+   "calls": 321,
+   "rows": 321,
+   "mean_exec_time": 0.03492904361370716,
+   "total_exec_time": 11.212222999999998
+  },
+  {
+   "query": "UPDATE orders SET status = $1 WHERE order_id = (SELECT order_id FROM orders WHERE tenant_id = $2 LIMIT $3)",
+   "calls": 136,
+   "rows": 136,
+   "mean_exec_time": 0.037212860294117626,
+   "total_exec_time": 5.060948999999997
+  },
+  {
+   "query": "INSERT INTO orders (order_id, tenant_id, customer_email, total_amount, status, order_date) VALUES ($1, $2, $3, $4, $5, now())",
+   "calls": 143,
+   "rows": 143,
+   "mean_exec_time": 0.03177806993006994,
+   "total_exec_time": 4.544263999999998
+  },
+  {
+   "query": "INSERT INTO optimizer_meta.optimization_runs (request_id, query_fingerprint, processing_status, anonymized_sql, plan_fingerprint, recommendation_summary, sandbox_metrics, blast_radius_metrics, model_modes, error_category) VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb,$8::jsonb,$9::jsonb,$10) ON CONFLICT (request_id) DO NOTHING",
+   "calls": 16,
+   "rows": 13,
+   "mean_exec_time": 0.2227146875,
+   "total_exec_time": 3.5634350000000006
+  },
+  {
+   "query": "INSERT INTO optimizer_meta.query_history (query_fingerprint, plan_fingerprint, plan_shape, timestamp_bucket, call_count, mean_exec_time_ms, estimated_cost, estimated_rows, actual_rows, operator_histogram, access_features, table_size_bucket, write_frequency_bucket, anonymized_sql, source, recommendation_outcome) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11::jsonb,$12,$13,$14,$15,$16)",
+   "calls": 48,
+   "rows": 48,
+   "mean_exec_time": 0.03597589583333335,
+   "total_exec_time": 1.7268429999999997
+  },
+  {
+   "query": "INSERT INTO optimizer_meta.migrations (migration_id, request_id, query_fingerprint, migration_sql, rollback_sql, rationale, requires_human_review) VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT (migration_id) DO NOTHING",
+   "calls": 12,
+   "rows": 12,
+   "mean_exec_time": 0.058232083333333344,
+   "total_exec_time": 0.6987850000000001
+  }
+ ]
+}

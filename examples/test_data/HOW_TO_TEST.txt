@@ -1,0 +1,34 @@
+Planora - test files for the two new features
+====================================================
+
+A) UPLOAD DATASET (CSV, JSON)   [sidebar -> "Upload Dataset (CSV, JSON)"]
+  1. Upload store_sales.csv, dataset name: shop  -> Preview -> Commit load   (20,000 rows)
+  2. Sidebar "Data source" now shows the new dataset. Its table is simply named: shop
+     Select it, then ask:
+       total price by region
+       how many orders by product
+       average quantity by region
+       monthly sales
+       top 5 products by revenue
+       how many orders in the last 30 days      (data ends 2025 -> shows the "re-run anchored" button)
+  3. Schema growth: choose Upload Dataset again, upload store_sales_new_column.csv,
+     SAME dataset name: shop -> preview says new column "channel" -> Commit (schema version becomes 2)
+  4. Bad data: upload store_sales_BAD.csv, dataset name: shop -> red conflict table
+     (quantity "three", price "abc", date "not-a-date") -> Commit is REJECTED, nothing written.
+  5. JSON: upload employees.json, dataset name: hr -> nested "address" becomes address__city /
+     address__pin, "skills" list becomes jsonb. Ask:  average salary by department   (table name: hr)
+
+B) UPLOAD SQL SCHEMA (BYOD)   [sidebar -> "Upload SQL Schema (BYOD)"]
+  1. Upload bad_schema.sql -> "1 - Verify" -> REJECTED with line numbers
+     (INSERT, COPY, FUNCTION, GRANT, DROP). Create sandbox button does not appear.
+  2. Upload good_schema_shop.sql -> "1 - Verify" -> VERIFIED (SET / OWNER lines shown as "normalized")
+     -> pick "small" -> "2 - Create sandbox". The source panel shows a 30-minute countdown.
+  3. Ask:
+       total amount of orders by status
+       how many customers by country
+       top 5 products by price
+  4. Turn "Optimize" ON to see HypoPG index advice, then try
+     "Apply first index here and measure" (allowed only on sandbox/dataset, never on the demo DB).
+  5. Press Extend (adds time) or Delete (removes the sandbox). It also deletes itself when time runs out.
+
+Results from the sandbox are labelled [SYNTHETIC DATA] because the rows are generated, not real.
