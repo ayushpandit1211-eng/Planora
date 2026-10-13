@@ -22,7 +22,7 @@ with sync_playwright() as p:
     page = b.new_page(viewport={"width": 1280, "height": 2600})
     page.goto(URL)
     settle(page, 3000)
-    page.locator('[data-testid="stSidebar"] label').filter(has_text="Upload Dataset (CSV, JSON)").first.click()
+    page.locator('[data-testid="stSidebar"] label').filter(has_text="Upload Dataset").first.click()
     settle(page)
     page.locator('input[type="file"]').set_input_files(str(ROOT / "tests/frontend/fixtures/synthetic_sales.csv"))
     settle(page)

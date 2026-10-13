@@ -11,6 +11,7 @@ This is a different feature from `app/ingestion.py` (slow-query *workload log* i
 """
 from __future__ import annotations
 
+import asyncio
 import codecs
 import csv
 import datetime as dt
@@ -490,7 +491,7 @@ def _iter_rows(a: Analysis) -> Iterator[tuple[int, list[Any] | None]]:
             yield i, [flat.get(k) for k in keys]
 
 
-def analyze_file(path: Path, filename: str, settings: Settings | None = None) -> Analysis:
+def analyze_file(path: Path, filename: str, settings: Settings | None = None, *, canonical_csv: bool = False) -> Analysis:
     s = settings or get_settings()
     ext = Path(filename).suffix.lower()
     if ext not in ALLOWED_EXT:
@@ -520,7 +521,7 @@ def analyze_file(path: Path, filename: str, settings: Settings | None = None) ->
     if fmt == "csv":
         with path.open("r", encoding=enc, newline="") as f:
             sample = f.read(64 * 1024)
-        delimiter, header = detect_csv_dialect(sample)
+        delimiter, header = (",", True) if canonical_csv else detect_csv_dialect(sample)
         first = next(csv.reader(io.StringIO(sample), delimiter=delimiter), [])
         if header:
             trimmed = 0
@@ -660,20 +661,42 @@ class DatasetIngestionService:
 
     async def preview(self, path: Path, filename: str, dataset_name: str | None = None,
                       entity_name: str | None = None, session_id: str | None = None,
-                      target_source_id: str | None = None) -> dict[str, Any]:
+                      target_source_id: str | None = None, selection: str | None = None,
+                      archive_member: str | None = None) -> dict[str, Any]:
         self._gc()
+        from app.structured_formats import STRUCTURED_EXT, convert_file
+        original_name = filename
+        notes = []
+        if Path(filename).suffix.lower() in STRUCTURED_EXT:
+            original_path = path
+            path = self.tmpdir / f"converted_{secrets.token_hex(8)}.csv"
+            try:
+                filename, notes = await asyncio.to_thread(convert_file, original_path, filename, path,
+                    int(self.settings.ingest_max_upload_mb * 1024 * 1024), selection, archive_member)
+            finally:
+                original_path.unlink(missing_ok=True)
         try:
-            a = analyze_file(path, filename, self.settings)
+            a = await asyncio.to_thread(analyze_file, path, filename, self.settings, canonical_csv=(filename == "converted.csv" and bool(notes)))
+            a.filename = original_name
+            a.warnings.extend(notes)
         except Exception:
             path.unlink(missing_ok=True)
             raise
-        ds = normalize_identifier(dataset_name or Path(filename).stem, "dataset")[:40]
+        ds = normalize_identifier(dataset_name or Path(original_name).stem, "dataset")[:40]
         ent = normalize_identifier(entity_name, "data")[:30] if entity_name else None
-        table = await self._table_for_session(ds, ent, session_id)
+        try:
+            table = await self._table_for_session(ds, ent, session_id)
+        except BaseException:
+            path.unlink(missing_ok=True)
+            raise
         pid = f"pv_{secrets.token_hex(10)}"
         self._previews[pid] = PreviewEntry(pid, a, ds, table, session_id, time.time())
-        plan = await self._plan(a, table, target_source_id, session_id)
-        return {"preview_id": pid, "filename": filename, "sha256": a.sha256, "size_bytes": a.size_bytes,
+        try:
+            plan = await self._plan(a, table, target_source_id, session_id)
+        except BaseException:
+            self.discard(pid)
+            raise
+        return {"preview_id": pid, "filename": original_name, "sha256": a.sha256, "size_bytes": a.size_bytes,
                 "detected_format": a.fmt, "encoding": a.encoding, "header": a.header,
                 "delimiter": "(single column)" if a.delimiter == SINGLE_COLUMN_DELIM else a.delimiter,
                 "rows_read": a.rows_read, "rows_rejected_ragged": len(a.ragged_rows),

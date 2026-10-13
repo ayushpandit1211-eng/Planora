@@ -142,10 +142,28 @@ def build_router(require_key) -> APIRouter:
                                                    for a, b, c in t.fks]} for t in tables.values()]}
 
     # ------------------------------------------------------------------ dataset ingestion
+    @r.post("/data/options")
+    async def data_options(request: Request, filename: str = Query(..., max_length=200),
+                           archive_member: str | None = Query(None, max_length=500),
+                           x_session_id: str | None = Header(default=None)):
+        _require("ingestion")
+        if _session(x_session_id) is None:
+            raise QuerySentinelError(ErrorCategory.SOURCE_FORBIDDEN, "X-Session-Id header required", stage="upload")
+        from app.structured_formats import inspect_file
+        cap = get_settings().ingest_max_upload_mb
+        data = await _read_body(request, cap)
+        path = st(request).ingestion.stage_bytes(data, filename)
+        try:
+            return await asyncio.to_thread(inspect_file, path, filename, int(cap * 1024 * 1024), archive_member)
+        finally:
+            path.unlink(missing_ok=True)
+
     @r.post("/data/preview")
     async def data_preview(request: Request, filename: str = Query(..., max_length=200),
                            dataset_name: str | None = Query(None, max_length=60),
                            entity_name: str | None = Query(None, max_length=60),
+                           selection: str | None = Query(None, max_length=200),
+                           archive_member: str | None = Query(None, max_length=500),
                            x_session_id: str | None = Header(default=None)):
         _require("ingestion")
         sess = _session(x_session_id)
@@ -154,7 +172,8 @@ def build_router(require_key) -> APIRouter:
         s = st(request)
         data = await _read_body(request, get_settings().ingest_max_upload_mb)
         path = s.ingestion.stage_bytes(data, filename)
-        return await s.ingestion.preview(path, filename, dataset_name, entity_name, sess)
+        return await s.ingestion.preview(path, filename, dataset_name, entity_name, sess,
+                                         selection=selection, archive_member=archive_member)
 
     @r.post("/data/commit")
     async def data_commit(body: CommitBody, request: Request, x_session_id: str | None = Header(default=None)):

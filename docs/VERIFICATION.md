@@ -27,3 +27,8 @@ Raw verification logs and JSON evidence are saved outside the public source pack
 ## Planora rename verification — 10 October 2026
 
 All 272 live tests passed (zero skipped) after renaming. The local dashboard renders Planora, and the API OpenAPI title is Planora API. All five trained model/artifact files match the original baseline by SHA-256. Compatibility identifiers and attributed historical material are intentionally preserved. Remote CI and public hosting remain pending.
+
+
+## Structured imports — 13 October 2026
+
+288 tests passed, zero skipped, against the isolated native PostgreSQL test servers. Coverage includes Excel, Parquet, SQLite, ZIP and TSV preview/commit with SQL verification; API worksheet selection and query; rejection of unsafe ZIP paths/expansion, formulas and SQLite views. Models are unchanged. See STRUCTURED_IMPORTS.md for supported formats and explicit limits.

@@ -77,7 +77,7 @@ def s_all_tabs(at):
 
 
 def s_upload_mode(at):
-    at.sidebar.radio[0].set_value("Upload Dataset (CSV, JSON)").run()
+    at.sidebar.radio[0].set_value("Upload Dataset").run()
 
 
 def s_dataset_source(at):

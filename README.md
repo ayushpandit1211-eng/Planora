@@ -12,10 +12,10 @@ Built with FastAPI, Streamlit, PostgreSQL 16, PyTorch/PyTorch Geometric, LangGra
 - Inspect query-plan graphs with the supplied GNN checkpoint and RL policy.
 - Compare hypothetical indexes using real PostgreSQL planner estimates; no physical index is created by the main optimization pipeline.
 - Review blast-radius estimates, migration SQL, and rollback SQL.
-- Upload CSV/JSON datasets, inspect inferred schemas, ask supported natural-language questions, and run validated SQL.
+- Upload CSV/JSON, TSV, Excel (.xlsx), Parquet, SQLite and ZIP datasets, inspect inferred schemas, ask supported natural-language questions, and run validated SQL.
 - Review workload statistics and audit evidence. Optional LLM access is disabled by default; the local deterministic path works without an API key.
 
-**Verification, 9 October 2026:** 272 tests passed, zero skipped, against native PostgreSQL 16.15 + HypoPG 1.4.3 and a separate disposable sandbox server. See [verification](docs/VERIFICATION.md). GitHub Actions is configured; its remote run and the Docker image build have not yet been verified.
+**Verification, 13 October 2026:** 288 tests passed, zero skipped, against native PostgreSQL 16.15 + HypoPG 1.4.3 and a separate disposable sandbox server. See [verification](docs/VERIFICATION.md). The initial GitHub Actions tests and Docker stack checks passed. The structured-import update is being validated separately. See [supported formats and limits](docs/STRUCTURED_IMPORTS.md).
 
 ## Deploy for trusted reviewers
 

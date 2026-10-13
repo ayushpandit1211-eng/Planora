@@ -155,7 +155,7 @@ def run_pipeline(start_path: str, body: dict) -> None:
 _MAX_MB = int(os.environ.get("INGEST_MAX_UPLOAD_MB", "100"))
 _up_code, _up_status = _api.get("/api/v1/upgrade/status")
 with _data:
-    if ss.get("qs_mode") == "Upload Dataset (CSV, JSON)":
+    if ss.get("qs_mode") == "Upload Dataset":
         ui.section("Add a dataset", "Select a file, preview it (nothing is written), then commit the load.")
         upg.dataset_upload(_api, _MAX_MB)
         st.divider()

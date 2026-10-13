@@ -5,6 +5,8 @@ V3 light glass presentation: dense tables, restrained colour, provenance badges 
 from __future__ import annotations
 
 import html
+import hashlib
+from urllib.parse import urlencode
 import time
 import uuid
 from typing import Any
@@ -99,7 +101,7 @@ def sidebar_sources(api: UpgradeClient) -> dict:
     ss.qs_source = st.selectbox("Active source", ids, index=ids.index(ss.qs_source),
                                 format_func=lambda i: labels.get(i, i), label_visibility="collapsed")
     ss.setdefault("qs_mode", "Demo Database")
-    modes = ["Demo Database", "Upload Dataset (CSV, JSON)"]
+    modes = ["Demo Database", "Upload Dataset"]
     if ss.qs_mode not in modes:
         ss.qs_mode = "Demo Database"
     ss.qs_mode = st.radio("Add data", modes, index=modes.index(ss.qs_mode), label_visibility="collapsed")
@@ -211,24 +213,65 @@ def source_for_sql(api: UpgradeClient, sql: str, active: dict) -> dict:
 # ------------------------------------------------------------------ dataset upload (preview -> commit)
 def dataset_upload(api: UpgradeClient, max_mb: int) -> None:
     ss = st.session_state
-    st.caption(f"Accepted: CSV (comma, semicolon, tab, pipe; UTF-8/BOM/Latin-1) or JSON (array, JSON Lines, object "
-               f"with one array) · up to {max_mb} MB. Types are inferred; tables only grow (new nullable columns) - "
-               "nothing is ever dropped.")
-    st.markdown('<div class="qs-steps-line"><b>1</b> Select file <span>→</span> <b>2</b> Preview <span>→</span> '
-                '<b>3</b> Commit load</div>', unsafe_allow_html=True)
-    f = st.file_uploader("Dataset file", type=["csv", "tsv", "txt", "json", "jsonl", "ndjson"],
-                         label_visibility="visible")
-    name = st.text_input("Dataset name - this becomes the TABLE NAME you use in SQL (e.g. survey -> FROM survey). "
-                         "Leave empty to use the file name.", value="")
-    if f is not None and st.button("Preview (no writes)"):
+    st.caption(f"CSV, TSV, JSON, Excel (.xlsx), Parquet, SQLite, or ZIP · up to {max_mb} MB. "
+               "Select one worksheet, table, or archive file per import. Excel formulas must be exported as values.")
+    f = st.file_uploader("Dataset file", type=["csv", "tsv", "txt", "json", "jsonl", "ndjson",
+                         "xlsx", "parquet", "sqlite", "sqlite3", "db", "zip"])
+    name = st.text_input("Dataset name (SQL table name); leave empty to use the file name.", value="")
+    selection, member = None, None
+    if f is None:
+        ss.qs_preview = None
+        return
+    if f is not None:
         if f.size > max_mb * 1024 * 1024:
-            st.error(f"`upload_rejected` - file larger than {max_mb} MB")
+            st.error(f"File exceeds {max_mb} MB")
             return
-        q = f"/api/v1/data/preview?filename={f.name}" + (f"&dataset_name={name}" if name else "")
-        code, pv = api.upload(q, f.getvalue())
-        ss.qs_preview = pv if code == 200 else None
-        if code != 200:
-            show_error(pv)
+        content = f.getvalue()
+        fingerprint = hashlib.sha256(content).hexdigest()
+        identity = (fingerprint, f.name)
+        if ss.get("qs_upload_identity") != identity:
+            ss.qs_upload_identity, ss.qs_preview, ss.qs_format_options = identity, None, {}
+        options_cache = ss.qs_format_options
+        def options(archive_member=None):
+            cache_key = archive_member or ""
+            if cache_key not in options_cache:
+                params = {"filename": f.name}
+                if archive_member:
+                    params["archive_member"] = archive_member
+                options_cache[cache_key] = api.upload("/api/v1/data/options?" + urlencode(params), content)
+            code, out = options_cache[cache_key]
+            if code != 200:
+                show_error(out)
+                return None
+            return out
+        if f.name.lower().endswith((".xlsx", ".sqlite", ".sqlite3", ".db", ".zip")):
+            out = options()
+            if out is None:
+                return
+            if out.get("members"):
+                member = st.selectbox("File inside ZIP", out["members"], key="zip_" + fingerprint)
+                out = options(member)
+                if out is None:
+                    return
+            if out.get("tables"):
+                selection = st.selectbox("Worksheet or table", out["tables"],
+                                         key="table_" + fingerprint + str(member))
+        preview_identity = (identity, name, member, selection)
+        if ss.get("qs_preview_identity") != preview_identity:
+            ss.qs_preview = None
+        if st.button("Preview (no writes)"):
+            params = {"filename": f.name}
+            if name:
+                params["dataset_name"] = name
+            if selection:
+                params["selection"] = selection
+            if member:
+                params["archive_member"] = member
+            code, pv = api.upload("/api/v1/data/preview?" + urlencode(params), content)
+            ss.qs_preview = pv if code == 200 else None
+            ss.qs_preview_identity = preview_identity
+            if code != 200:
+                show_error(pv)
     pv = ss.get("qs_preview")
     if pv:
         st.markdown(f"**Preview** · format `{pv['detected_format']}` · encoding `{pv['encoding']}` · delimiter "
@@ -254,6 +297,8 @@ def dataset_upload(api: UpgradeClient, max_mb: int) -> None:
                 st.rerun()
             else:
                 show_error(res)
+
+
 
 
 # ------------------------------------------------------------------ Ask Your Database (10 sections)

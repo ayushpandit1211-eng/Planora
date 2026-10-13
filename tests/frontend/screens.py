@@ -53,7 +53,7 @@ def main(tag: str, scenarios: list[str], sizes=SIZES) -> None:
                     if w < 900:
                         page.locator('[data-testid="stExpandSidebarButton"]').first.click()
                         page.wait_for_timeout(800)
-                    page.locator('[data-testid="stSidebar"] label').filter(has_text="Upload Dataset (CSV, JSON)").first.click()
+                    page.locator('[data-testid="stSidebar"] label').filter(has_text="Upload Dataset").first.click()
                     if w < 900:
                         page.wait_for_timeout(1500)
                         page.locator('[data-testid="stSidebarCollapseButton"] button, [data-testid="stSidebarCollapseButton"]').first.click()

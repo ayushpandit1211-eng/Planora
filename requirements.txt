@@ -20,3 +20,8 @@ pytest==9.1.1
 pytest-asyncio==1.4.0
 # LLM access (Gemini / OpenAI-compatible) is done over plain HTTPS with httpx,
 # so no vendor SDK is required.
+
+# Structured dataset adapters
+openpyxl==3.1.5
+defusedxml==0.7.1
+pyarrow==25.0.1

@@ -23,6 +23,33 @@ def H(sess):
     return {"X-Session-Id": sess}
 
 
+def test_excel_options_preview_commit_and_query(client, tmp_path):
+    from tests.test_structured_formats import fixture_file
+    path = fixture_file(tmp_path, "xlsx")
+    content = path.read_bytes()
+    headers = H("sess-" + uuid.uuid4().hex[:12])
+    params = {"filename": "sales & returns.xlsx"}
+    assert client.post("/api/v1/data/options", params=params, content=content).status_code == 403
+    response = client.post("/api/v1/data/options", params=params, content=content, headers=headers)
+    assert response.status_code == 200, response.text
+    assert response.json()["tables"] == ["Sales & returns"]
+    name = "sheet_" + uuid.uuid4().hex[:8]
+    params.update(selection="Sales & returns", dataset_name=name)
+    response = client.post("/api/v1/data/preview", params=params, content=content, headers=headers)
+    assert response.status_code == 200, response.text
+    preview = response.json()
+    response = client.post("/api/v1/data/commit", json={"preview_id": preview["preview_id"]}, headers=headers)
+    assert response.status_code == 200, response.text
+    source = response.json()["data_source_id"]
+    try:
+        result = client.post("/api/v1/nlq/run", headers=headers, json={"data_source_id": source,
+            "sql": f"SELECT name, amount FROM {name} ORDER BY id", "optimize": False})
+        assert result.status_code == 200, result.text
+        assert "Delhi" in result.text and "Pune" in result.text
+    finally:
+        assert client.delete("/api/v1/data/datasets/" + source, headers=headers).status_code == 200
+
+
 def test_status_demo_flow_errors_and_sse(client):
     st = client.get("/api/v1/upgrade/status").json()
     assert st["raw_data_exposed_to_ai"] == 0 and "ingestion" in st["feature_flags"]
