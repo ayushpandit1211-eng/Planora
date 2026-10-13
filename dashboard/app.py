@@ -115,6 +115,7 @@ def run_pipeline(start_path: str, body: dict) -> None:
         st.error(f"Could not start optimisation: {started}")
         return
     rid = started["request_id"]
+    ss.report_source = {"id": "demo", "name": "Demo Database", "kind": "demo"}
     ss.events, ss.report, ss.sql_notes = [], None, None
     ss.agent_status = {a: "QUEUED" for a in AGENTS}
     log_box = st.empty()
@@ -198,6 +199,7 @@ with _work:
     ss.raw_sql = st.text_area("Slow SQL query (single read-only SELECT)", value=ss.raw_sql, height=150,
                               label_visibility="visible")
     _target = upg.source_for_sql(_api, ss.raw_sql, active_source)
+    st.caption(f"Query target: {_target.get('name', 'Demo Database')}. Change Active source in Sources & settings to use another database.")
     if _target.get("kind", "demo") != "demo":
         st.caption(f"This query will run on your data source **{_target.get('name')}** (`{_target['id']}`): 10 safety "
                    "checks → full optimisation pipeline → results in the detail views below.")
@@ -210,6 +212,7 @@ with _work:
             # Final Upgrade: pasted SQL follows the data source that owns its tables; the EXISTING full pipeline runs
             # there and its complete report fills the same tabs as the demo flow.
             ss.sql_notes = None
+            ss.report_source = _target
             with st.spinner(f"Optimising on {_target.get('name')} ..."):
                 _c, _o = _api.post("/api/v1/nlq/optimize", {"sql": ss.raw_sql, "data_source_id": _target["id"]})
                 if _c == 200 and _o.get("request_id"):
@@ -223,6 +226,14 @@ with _work:
                                  "error": _o.get("error"),
                                  "suggestions": (_o.get("details") or {}).get("suggestions") or []}}
             st.rerun()
+
+    # Keep failures next to the action; the detailed answer can be far below the fold.
+    if ss.report and ss.report.get("status") != "completed":
+        _error = ss.report.get("error") or {}
+        _message = _error.get("message") if isinstance(_error, dict) else str(_error)
+        st.error("Optimisation did not complete: " + (_message or "See the report details below."))
+        st.info("Check Active source under Sources & settings. The example query using tenants and orders "
+                "requires Demo Database; an uploaded dataset has its own table and column names.")
 
 rep = ss.report
 with _answer_slot:
