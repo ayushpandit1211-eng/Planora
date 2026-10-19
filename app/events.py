@@ -103,8 +103,8 @@ class EventBus:
                 yield ev
                 if ev.event in TERMINAL_EVENTS:
                     return
-            if ch.closed:
-                return
+            # Events published during replay are queued, including completion.
+            # Drain that queue even if the publisher has already closed the channel.
             waited = 0.0
             while waited < timeout_s:
                 try:

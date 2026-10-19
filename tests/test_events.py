@@ -48,3 +48,14 @@ async def test_subscribe_replays_and_terminates():
     bus.publish("r1", "FINAL_REPORT_READY", "final", "done")
     got = [e.event async for e in bus.subscribe("r1", heartbeat_s=0.05)]
     assert got == ["REQUEST_RECEIVED", "FINAL_REPORT_READY"]
+
+
+async def test_subscribe_delivers_completion_published_during_replay():
+    bus = EventBus()
+    bus.publish("r1", "REQUEST_RECEIVED", "api", "start")
+    stream = bus.subscribe("r1", heartbeat_s=0.05)
+    assert (await anext(stream)).event == "REQUEST_RECEIVED"
+    # The pipeline completes while the consumer is processing a replayed event.
+    bus.publish("r1", "FINAL_REPORT_READY", "final", "done")
+    remaining = [event.event async for event in stream]
+    assert remaining == ["FINAL_REPORT_READY"]
