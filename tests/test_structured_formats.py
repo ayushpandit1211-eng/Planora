@@ -114,6 +114,9 @@ def test_sqlite_views_are_not_imported(tmp_path):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("kind", ["xlsx", "parquet", "sqlite", "zip", "tsv"])
 async def test_real_database_import(tmp_path, kind):
+    # Match application startup on a fresh database, independent of test order.
+    from app.meta_migration import run_meta_migration
+    await run_meta_migration()
     svc = DatasetIngestionService()
     dataset = "format_" + uuid.uuid4().hex[:10]
     path = fixture_file(tmp_path, kind)
